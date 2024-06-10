@@ -5,6 +5,7 @@ import {
   signIn,
   authenticate,
   getProfile,
+  checkUser,
 } from "../controllers/authController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 
@@ -15,5 +16,6 @@ router.post("/signin", signIn);
 // router.get("/authenticate", authenticate);
 // Protect the /profile route with authMiddleware
 router.get("/profile", authMiddleware, getProfile);
+router.get("/user", checkUser);
 
 export default router;

@@ -7,18 +7,20 @@ import { IGetUserAuthInfoRequest } from "../types/express";
 import { JWT_EXPIRATION, JWT_SECRET } from "../config/config";
 
 export const signUp = async (req: Request, res: Response) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, provider, username } = req.body;
 
   try {
     let user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ msg: "User already exists" });
     }
-
+    const hashedPassword = await bcrypt.hash(password, 10);
     user = new User({
       name,
       email,
-      password: await bcrypt.hash(password, 10),
+      password: hashedPassword,
+      provider: "credentials",
+      username: email.split("@")[0],
     });
 
     await user.save();
@@ -43,9 +45,21 @@ export const signIn = async (req: Request, res: Response) => {
       return res.status(400).json({ msg: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
-      expiresIn: JWT_EXPIRATION,
-    });
+    const token = jwt.sign(
+      {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        provider: user.provider,
+        role: user.role,
+        username: user.username,
+        isVerified: user.isVerified,
+      },
+      JWT_SECRET,
+      {
+        expiresIn: JWT_EXPIRATION,
+      }
+    );
 
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + parseInt(JWT_EXPIRATION, 10));
@@ -58,7 +72,18 @@ export const signIn = async (req: Request, res: Response) => {
 
     await session.save();
 
-    res.json({ token });
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        provider: user.provider,
+        role: user.role,
+        username: user.username,
+        isVerified: user.isVerified,
+      },
+    });
   } catch (error) {
     res.status(500).json({ msg: "Server error" });
   }
@@ -102,6 +127,30 @@ export const getProfile = async (
     }
 
     res.json(user);
+  } catch (error) {
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+export const checkUser = async (req: Request, res: Response) => {
+  const { email } = req.query;
+
+  try {
+    const user = await User.findOne({ email: email as string });
+
+    if (user) {
+      res.status(200).json({
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        provider: user.provider,
+        role: user.role,
+        username: user.username,
+        isVerified: user.isVerified,
+      });
+    } else {
+      console.log("User not found");
+      res.status(404).json({ msg: "User not found" });
+    }
   } catch (error) {
     res.status(500).json({ msg: "Server error" });
   }

@@ -23,8 +23,7 @@ export const authMiddleware = (
     }
 
     const decoded: any = jwt.verify(token, JWT_SECRET);
-
-    req.userId = decoded.userId;
+    req.userId = decoded.id;
     next();
   } catch (error) {
     console.error("Token verification error:", error);

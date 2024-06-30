@@ -7,6 +7,7 @@ import compression from "compression";
 import cors from "cors";
 
 import authRoutes from "./routes/authRoutes";
+import postRoutes from "./routes/postRoutes";
 import connectDB from "./config/db";
 import { PORT } from "./config/config";
 
@@ -21,6 +22,7 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/posts", postRoutes);
 
 connectDB().then(() => {
   app.listen(PORT, () => {

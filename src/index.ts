@@ -8,6 +8,7 @@ import cors from "cors";
 
 import authRoutes from "./routes/authRoutes";
 import postRoutes from "./routes/postRoutes";
+import categoryRoutes from "./routes/categoryRoutes";
 import connectDB from "./config/db";
 import { PORT } from "./config/config";
 
@@ -23,6 +24,7 @@ app.use(bodyParser.json());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api/categories", categoryRoutes);
 
 connectDB().then(() => {
   app.listen(PORT, () => {
